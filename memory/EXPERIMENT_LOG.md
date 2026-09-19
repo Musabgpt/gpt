@@ -32,3 +32,22 @@ Checkpoint storage:
 - Google Drive /gpt/TinyPyGPT/model/microcoder_284k_step5000_best.pt
 - Google Drive /gpt/TinyPyGPT/model/microcoder_284k_step5000_last.pt
 Promotion decision: DO NOT promote as coding-capable. Preserve as baseline; next run must fix held-out evaluation and increase capacity.
+
+
+## Run 002 — MicroCoder-1.1M / official evaluation
+Date: 2026-09-19
+Status: completed successfully on Kaggle CUDA.
+Architecture: 1,099,648 parameters; dim=128; 5 layers; 8 heads; FFN=384; context=768; byte vocabulary=260.
+Data: youmyron/bits-py-dataset, official 8,143 train / 1,003 validation / 962 test source rows.
+Training command: 5,000 mini-batches, batch_size=16, grad_accum=4 = 1,250 optimizer updates, AdamW lr=3e-4.
+Observed train loss: 4.6698 @ batch 50 -> 0.8503 @ batch 5,000.
+Official validation loss: 2.7054 @ 500 -> 1.0161 @ 5,000.
+Official test loss: 1.0164.
+Generalization note: validation and test losses match closely, with no obvious held-out-loss overfitting signal.
+Functional generation check: FAILED. The model generates Python-like surface structure but does not reliably solve even add(a,b), is_even(n), reverse_string(s), factorial(n), or pandas CSV reading. Several outputs are syntactically invalid.
+Diagnosis: the current streaming LM objective spends capacity predicting user prompts, markup, prose and assistant answers indiscriminately. For a ~1M model this is inefficient for the target skill. The next experiment must keep the same parameter count and change the curriculum/objective before scaling.
+Checkpoint storage:
+- Google Drive /gpt/TinyPyGPT/model/microcoder_1m_step5000_best.pt
+- Google Drive /gpt/TinyPyGPT/model/microcoder_1m_step5000_last.pt
+Promotion decision: preserve as language-model baseline, DO NOT promote as Python coder.
+Next experiment: executable-code curriculum -> answer-only masked SFT -> official held-out loss + deterministic syntax/function checks.
